@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensitivity Gen 2026 - Auto-Calibración Remota</title>
+    <style>
+        :root {
+            --primary: #ff4757;
+            --dark: #121214;
+            --card-bg: #1e1e24;
+            --input-bg: #2f3542;
+            --text: #ffffff;
+            --subtext: #a4b0be;
+            --accent: #2ed573;
+            --gold: #ffa502;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background-color: var(--dark); color: var(--text); padding: 15px; }
+        .container { max-width: 500px; margin: 0 auto; background: var(--card-bg); padding: 20px; border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid #333; }
+        
+        .license-banner { background: #16161a; padding: 12px; border-radius: 8px; border: 1px dashed #57606f; margin-bottom: 15px; text-align: center; }
+        .license-flex { display: flex; gap: 8px; margin-top: 6px; }
+        .license-banner input { flex: 1; padding: 10px; border-radius: 6px; border: 1px solid #444; background: var(--input-bg); color: white; text-align: center; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; }
+        .license-banner button { padding: 10px 15px; border-radius: 6px; border: none; background: var(--accent); color: black; font-weight: bold; cursor: pointer; font-size: 0.85rem; }
+        
+        .btn-buy-vip { width: 100%; margin-top: 8px; padding: 8px; background: linear-gradient(135deg, #ffa502, #ff7f50); color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+
+        h1 { text-align: center; color: var(--primary); font-size: 1.4rem; margin-bottom: 4px; font-weight: 800; }
+        p.subtitle { text-align: center; font-size: 0.8rem; color: var(--subtext); margin-bottom: 18px; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        .badge-basic { background: #57606f; color: white; }
+        .badge-vip { background: var(--gold); color: black; display: none; }
+
+        .section-title { font-size: 0.85rem; color: var(--gold); text-transform: uppercase; font-weight: bold; margin: 14px 0 6px 0; border-bottom: 1px solid #333; padding-bottom: 3px; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; font-size: 0.8rem; margin-bottom: 3px; font-weight: 600; color: #ddd; }
+        select, input[type="text"] { width: 100%; padding: 9px; border-radius: 6px; border: 1px solid #444; background: var(--input-bg); color: white; font-size: 0.85rem; outline: none; }
+        
+        .locked-field { opacity: 0.55; position: relative; pointer-events: none; }
+        .locked-badge { font-size: 0.7rem; color: var(--gold); float: right; font-weight: normal; }
+
+        .specs-box { background: #181820; border: 1px solid #3a3d4a; padding: 10px 12px; border-radius: 8px; margin-top: 8px; display: none; }
+        .specs-title { font-size: 0.75rem; color: var(--accent); font-weight: bold; text-transform: uppercase; margin-bottom: 6px; border-bottom: 1px dashed #333; padding-bottom: 2px; }
+        .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 0.75rem; }
+        .specs-item { color: var(--subtext); }
+        .specs-item strong { color: #fff; }
+
+        .sync-status { font-size: 0.75rem; padding: 6px; background: #16161a; border-radius: 6px; text-align: center; color: var(--accent); margin-bottom: 10px; border: 1px solid #333; }
+
+        .elemento-vip { display: none !important; }
+        .elemento-basico { display: block !important; }
+
+        .vip-activo .elemento-vip { display: block !important; }
+        .vip-activo .elemento-basico { display: none !important; }
+        .vip-activo .badge-basic { display: none !important; }
+        .vip-activo .badge-vip { display: inline-block !important; }
+        .vip-activo .license-banner { border-color: var(--gold); background: #262010; }
+        .vip-activo .locked-field { opacity: 1; pointer-events: auto; }
+
+        button.btn-generate { width: 100%; background: linear-gradient(135deg, #ff4757, #ff6b81); color: white; border: none; padding: 12px; font-size: 0.95rem; font-weight: bold; border-radius: 8px; cursor: pointer; margin-top: 15px; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4); }
+        .vip-activo button.btn-generate { background: linear-gradient(135deg, #ffa502, #ff7f50); color: black; box-shadow: 0 4px 10px rgba(255, 165, 0, 0.3); }
+
+        .results { margin-top: 20px; background: #16161a; padding: 15px; border-radius: 10px; display: none; border: 1px solid var(--accent); }
+        .results h2 { color: var(--accent); font-size: 1rem; margin-bottom: 10px; text-align: center; }
+        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .result-card { background: #22222a; padding: 8px 10px; border-radius: 6px; border-left: 3px solid var(--gold); }
+        .result-card span { display: block; font-size: 0.7rem; color: var(--subtext); }
+        .result-card strong { font-size: 0.95rem; color: #fff; }
+        .full-card { grid-column: span 2; border-left-color: var(--primary); }
+
+        .vip-promo-box { margin-top: 15px; background: linear-gradient(135deg, #262010, #181820); border: 1px solid var(--gold); padding: 12px; border-radius: 8px; text-align: center; }
+        .vip-promo-box h3 { color: var(--gold); font-size: 0.9rem; margin-bottom: 5px; }
+        .vip-promo-box p { font-size: 0.75rem; color: #ddd; margin-bottom: 10px; }
+        .vip-promo-btn { background: var(--gold); color: #000; border: none; padding: 8px 14px; font-size: 0.8rem; font-weight: bold; border-radius: 5px; cursor: pointer; }
+
+        /* MODAL DE PAGOS Y BOTONES DE ACCIÓN DIRECTA */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; justify-content: center; align-items: center; padding: 15px; }
+        .modal-card { background: var(--card-bg); width: 100%; max-width: 450px; padding: 20px; border-radius: 12px; border: 1px solid var(--gold); position: relative; }
+        .modal-close { position: absolute; top: 10px; right: 15px; color: var(--subtext); font-size: 1.5rem; cursor: pointer; font-weight: bold; }
+        .payment-box { background: #16161a; padding: 12px; border-radius: 8px; margin-top: 10px; font-size: 0.8rem; line-height: 1.4; border: 1px solid #333; }
+        .payment-title { color: var(--gold); font-size: 0.85rem; font-weight: bold; margin-bottom: 6px; }
+        
+        .copy-row { display: flex; justify-content: space-between; align-items: center; background: #22222a; padding: 6px 10px; border-radius: 6px; margin: 4px 0; border: 1px solid #444; }
+        .copy-row strong { font-size: 0.85rem; color: #fff; word-break: break-all; }
+        .btn-copy { background: var(--gold); color: #000; border: none; padding: 4px 8px; font-size: 0.7rem; font-weight: bold; border-radius: 4px; cursor: pointer; margin-left: 6px; }
+
+        .btn-paypal-direct { display: block; width: 100%; margin-top: 6px; background: #0070ba; color: #fff; text-align: center; font-weight: bold; padding: 8px; border-radius: 6px; text-decoration: none; font-size: 0.8rem; }
+        .btn-whatsapp { display: block; width: 100%; margin-top: 12px; background: #25D366; color: #000; text-align: center; font-weight: bold; padding: 10px; border-radius: 6px; text-decoration: none; font-size: 0.85rem; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="appContainer">
+    <!-- CÓDIGO VIP BANNER -->
+    <div class="license-banner" id="bannerVIP">
+        <label style="font-size: 0.75rem; color: var(--subtext);" id="lblBanner">¿Tienes código de activación VIP?</label>
+        <div class="license-flex" id="boxFormVIP">
+            <input type="text" id="inputCodigo" placeholder="CÓDIGO / LICENCIA">
+            <button type="button" onclick="activarVIP()">Activar VIP</button>
+        </div>
+        <button class="btn-buy-vip elemento-basico" onclick="abrirModalPagos()">🛒 Comprar Licencia VIP / Ver Métodos de Pago</button>
+    </div>
+
+    <h1>🔥 SENSITIVITY GEN <span id="badgeBasico" class="badge badge-basic">BÁSICO</span><span id="badgeVip" class="badge badge-vip">VIP PREMIUM</span></h1>
+    <p class="subtitle" id="subtituloApp">Modo Estándar Gratuito</p>
+
+    <!-- ESTADO DE LA SINCRONIZACIÓN -->
+    <div class="elemento-vip">
+        <div class="sync-status" id="statusSync">🌐 Conectando con servidor de parches...</div>
+    </div>
+
+    <!-- 1. DISPOSITIVO -->
+    <div class="section-title">📱 Dispositivo & Marca</div>
+    
+    <div class="form-group">
+        <label>1. Selecciona tu Marca:</label>
+        <select id="marcaSelect" onchange="actualizarMarcaSeleccionada()">
+            <option value="samsung">Samsung Galaxy</option>
+            <option value="xiaomi">Xiaomi / Poco / Redmi</option>
+            <option value="zte">ZTE / RedMagic / Nubia</option>
+            <option value="apple">Apple (iPhone / iPad)</option>
+            <option value="motorola">Motorola / Moto</option>
+            <option value="infinix">Infinix</option>
+            <option value="tecno">Tecno Mobile</option>
+            <option value="realme">Realme</option>
+            <option value="oppo">Oppo</option>
+            <option value="honor">Honor</option>
+            <option value="huawei">Huawei</option>
+            <option value="asus">Asus ROG Phone</option>
+            <option value="oneplus">OnePlus</option>
+            <option value="vivo">Vivo / iQOO</option>
+        </select>
+    </div>
+
+    <!-- Modo Gratuito: Gama genérica -->
+    <div class="form-group elemento-basico">
+        <label>2. Gama Estimada de la Marca:</label>
+        <select id="gamaBasica">
+            <option value="alta">Gama Alta / Flagship (120Hz-144Hz)</option>
+            <option value="media">Gama Media (90Hz - 120Hz)</option>
+            <option value="baja">Gama Baja / Económica (60Hz)</option>
+        </select>
+    </div>
+
+    <!-- Modelo Bloqueado (Muestra del VIP) -->
+    <div class="form-group elemento-basico locked-field">
+        <label>3. Modelo Exacto Detectado: <span class="locked-badge">🔒 SOLO VIP</span></label>
+        <select disabled>
+            <option>🔒 Activa VIP para seleccionar tu modelo exacto (ej. S26 Ultra, RedMagic 11...)</option>
+        </select>
+    </div>
+
+    <!-- Modo VIP: Modelos exactos -->
+    <div class="elemento-vip">
+        <div class="form-group">
+            <label>2. Selecciona el Modelo Exacto:</label>
+            <select id="modeloVip" onchange="mostrarEspecificaciones()"></select>
+        </div>
+
+        <div id="boxSpecs" class="specs-box">
+            <div class="specs-title">📋 Hardware Detectado del Modelo</div>
+            <div class="specs-grid">
+                <div class="specs-item">Refresco: <strong id="specHz">-</strong></div>
+                <div class="specs-item">Muestreo Táctil: <strong id="specTouch">-</strong></div>
+                <div class="specs-item">Tecnología Panel: <strong id="specPanel">-</strong></div>
+                <div class="specs-item">DPI Seguro: <strong id="specDpiNat">-</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. CALIBRACIÓN DE PARCHE -->
+    <div class="section-title">🎯 Calibración Personal del Parche</div>
+    <div class="form-group elemento-basico locked-field">
+        <label>¿Cómo sientes los disparos en este parche?: <span class="locked-badge">🔒 SOLO VIP</span></label>
+        <select disabled>
+            <option>🔒 Auto-Calibrador de Mira Volada / Pesada (Exclusivo VIP)</option>
+        </select>
+    </div>
+
+    <div class="elemento-vip">
+        <div class="form-group">
+            <label>¿Cómo sientes los disparos en este parche actual?:</label>
+            <select id="sentimientoParche">
+                <option value="normal">🟢 Equilibrado (Pega bien / Todo normal)</option>
+                <option value="pesado">🔵 Pesado (La mira cuesta alzarla / Se pega en el pecho)</option>
+                <option value="volado">🔴 Volado (Los disparos se pasan arriba de la cabeza)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 3. ARMAS -->
+    <div class="section-title">⚔️ Selección de Armas</div>
+    
+    <div class="form-group elemento-basico">
+        <label>Estilo de Juego General:</label>
+        <select id="estiloBasico">
+            <option value="un_tiro">Un solo tiro (Escopetas / Desert / Hawk)</option>
+            <option value="rafaga">Ráfaga continua (M7 / RPK / SMG)</option>
+        </select>
+    </div>
+
+    <div class="elemento-vip">
+        <div class="form-group">
+            <label>🎯 Arma 1: Larga Distancia (AR / DMR / Sniper):</label>
+            <select id="armaLarga">
+                <option value="m7">🔥 M7 (Fusil Meta)</option>
+                <option value="rpk">🔥 RPK (Ametralladora Pesada)</option>
+                <option value="hawk">🔥 Hawk / Hawk-12 (DMR Tirador)</option>
+                <option value="groza">Groza / Groza-X</option>
+                <option value="scar">SCAR / SCAR-III</option>
+                <option value="m4a1">M4A1 / M4A1-Z</option>
+                <option value="ak47">AK47 / AK-Dragon</option>
+                <option value="woodpecker">Woodpecker (DMR Un tiro)</option>
+                <option value="ac80">AC80 / SVD</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>⚡ Arma 2: Corta Distancia (SMG / Escopetas):</label>
+            <select id="armaCorta">
+                <option value="skorp">🔥 Skorp (Subfusil Automático Meta)</option>
+                <option value="shuriken">🔥 Shuriken & Kunai (Táctico Ninja)</option>
+                <option value="m1887">M1887-III / Dos Tiros (Escopeta Meta)</option>
+                <option value="mp40">MP40 / MP40 Cobra</option>
+                <option value="ump">UMP / UMP Ruby</option>
+                <option value="m1014">M1014-III (Escopeta pesada)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>🔫 Arma 3: Pistolas / Secundarias:</label>
+            <select id="pistola">
+                <option value="desert">Desert Eagle (Un tiro)</option>
+                <option value="m500">M500 (Un tiro larga distancia)</option>
+                <option value="mini_uzi">Mini Uzi / USP-2</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- DEDOS -->
+    <div class="form-group">
+        <label>Cantidad de Dedos (HUD):</label>
+        <select id="dedos">
+            <option value="2">2 Dedos</option>
+            <option value="3">3 Dedos</option>
+            <option value="4">4 Dedos (Claw)</option>
+        </select>
+    </div>
+
+    <button class="btn-generate" id="btnCalcular" onclick="procesarCalculo()">Generar Sensibilidad (0-200)</button>
+
+    <!-- RESULTADOS -->
+    <div id="resultadosBox" class="results">
+        <h2>📊 Configuración Calculada (<span id="txtMetaVer">Escala 0-200</span>)</h2>
+        <div class="result-grid">
+            <div class="result-card"><span>General (0-200)</span><strong id="resGeneral">-</strong></div>
+            <div class="result-card"><span>Punto Rojo (0-200)</span><strong id="resRedDot">-</strong></div>
+            <div class="result-card"><span>Mira 2x / 4x</span><strong id="resScopes">-</strong></div>
+            <div class="result-card"><span>Botón de Disparo</span><strong id="resBoton">-</strong></div>
+            <div class="result-card"><span>Mira AWM</span><strong id="resAwm">-</strong></div>
+            <div class="result-card"><span>Cámara 360</span><strong id="resCam360">-</strong></div>
+            
+            <div class="result-card full-card elemento-vip"><span>DPI Seguro Calculado</span><strong id="resDpi">-</strong></div>
+            <div class="result-card full-card elemento-vip"><span>Velocidad Puntero / Supresor</span><strong id="resSistema">-</strong></div>
+            <div class="result-card full-card elemento-vip"><span>Ajuste Térmico (+20 min)</span><strong id="resTermico">-</strong></div>
+        </div>
+
+        <div class="elemento-basico vip-promo-box">
+            <h3>👑 ¿Quieres pegar todo rojo en tu modelo exacto?</h3>
+            <p>El modo Básico usa valores estándar. Con el <strong>Modo VIP Premium</strong> obtienes el DPI exacto para tu teléfono, velocidad de puntero/supresor y calibración anti-mira volada.</p>
+            <button class="vip-promo-btn" onclick="abrirModalPagos()">Obtener Licencia VIP Ahora</button>
+        </div>
+    </div>
+</div>
+
+<!-- VENTANA FLOTANTE DE PAGOS -->
+<div class="modal-overlay" id="modalPagos">
+    <div class="modal-card">
+        <span class="modal-close" onclick="cerrarModalPagos()">&times;</span>
+        <h3 style="color: var(--gold); text-align: center; font-size: 1.1rem; margin-bottom: 10px;">💳 Métodos de Pago VIP</h3>
+        <p style="font-size: 0.75rem; text-align: center; color: var(--subtext);">Selecciona tu opción preferida para procesar tu pago de inmediato.</p>
+
+        <!-- 1. MÉXICO / DEPÓSITO NU -->
+        <div class="payment-box">
+            <div class="payment-title">🇲🇽 Transferencia / SPEI (México - Nu)</div>
+            <p><strong>Monto:</strong> $50 MXN | <strong>Banco:</strong> Nu México</p>
+            <div class="copy-row">
+                <strong id="clabeNu">5101251327756017</strong>
+                <button class="btn-copy" onclick="copiarTexto('5101251327756017', this)">📋 Copiar CLABE</button>
+            </div>
+            <p style="font-size: 0.7rem; color: #aaa; margin-top: 4px;">*Copiar la CLABE te permite pegar directo en la app de tu banco.</p>
+        </div>
+
+        <!-- 2. PAYPAL / INTERNACIONAL CON BOTÓN DIRECTO DE MONTO -->
+        <div class="payment-box">
+            <div class="payment-title">🌐 PayPal Express ($3 USD)</div>
+            <p>Paga directo con el monto pre-cargado ($3.00 USD) enviando a nuestro correo de PayPal:</p>
+            <div class="copy-row">
+                <strong id="correoPaypal">esjetzuladaly2025@gmail.com</strong>
+                <button class="btn-copy" onclick="copiarTexto('esjetzuladaly2025@gmail.com', this)">📋 Copiar Correo</button>
+            </div>
+            <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=esjetzuladaly2025@gmail.com&item_name=Licencia+VIP+OptiMax+Sensi&amount=3.00&currency_code=USD" target="_blank" rel="noopener noreferrer" class="btn-paypal-direct">
+                🟦 Abrir Pago Directo en PayPal ($3 USD)
+            </a>
+        </div>
+
+        <!-- SECCIÓN WHATSAPP -->
+        <div class="payment-box" style="border-color: #25D366;">
+            <div class="payment-title" style="color: #25D366;">📲 Enviar Comprobante por WhatsApp</div>
+            <button onclick="enviarWhatsApp()" class="btn-whatsapp">
+                💬 Abrir Chat Directo en WhatsApp
+            </button>
+            
+            <div style="margin-top: 8px; text-align: center;">
+                <p style="font-size: 0.7rem; color: var(--subtext);">O copia mi número de WhatsApp directamente:</p>
+                <div class="copy-row" style="margin-top: 4px;">
+                    <strong>7711744207</strong>
+                    <button class="btn-copy" onclick="copiarTexto('7711744207', this)">📋 Copiar Número</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CLAVE_ADMIN = "DANIELYTJ_A";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx2j4a4p53s8fYWXZpsfpwa6luSZVLAsHSr1MUlr9-OoW47SO_YKDBMPaalUVP6XYe2aQ/exec";
+    const URL_PARCHE_REMOTA = "https://raw.githubusercontent.com/espositahermosa2026-sudo/optimax-data/main/parche_meta.json";
+
+    let esSuscritoVIP = false;
+    let datosParcheServidor = { version_parche: "Meta Local 2026", factorGeneral: 1.0, factorRedDot: 1.0, factorScopes: 1.0 };
+
+    function abrirModalPagos() { document.getElementById('modalPagos').style.display = 'flex'; }
+    function cerrarModalPagos() { document.getElementById('modalPagos').style.display = 'none'; }
+
+    function enviarWhatsApp() {
+        const telefono = "5217711744207";
+        const texto = encodeURIComponent("Hola, ya realicé el pago para la Licencia VIP de OptiMax Sensi. Aquí adjunto mi comprobante:");
+        window.location.href = `https://api.whatsapp.com/send?phone=${telefono}&text=${texto}`;
+    }
+
+    function copiarTexto(texto, elementoBtn) {
+        navigator.clipboard.writeText(texto).then(() => {
+            const textoOriginal = elementoBtn.innerText;
+            elementoBtn.innerText = "✅ ¡Copiado!";
+            elementoBtn.style.background = "var(--accent)";
+            setTimeout(() => {
+                elementoBtn.innerText = textoOriginal;
+                elementoBtn.style.background = "var(--gold)";
+            }, 2000);
+        }).catch(err => { alert("Copia manualmente: " + texto); });
+    }
+
+    async function sincronizarParcheServidor() {
+        const boxStatus = document.getElementById('statusSync');
+        try {
+            const respuesta = await fetch(URL_PARCHE_REMOTA + '?t=' + new Date().getTime());
+            if (respuesta.ok) {
+                datosParcheServidor = await respuesta.json();
+                if (boxStatus) {
+                    boxStatus.style.color = "var(--accent)";
+                    boxStatus.innerText = "🟢 Sincronizado: " + datosParcheServidor.version_parche;
+                }
+            } else { throw new Error(); }
+        } catch (error) {
+            if (boxStatus) {
+                boxStatus.style.color = "var(--gold)";
+                boxStatus.innerText = "🟡 Modo Offline: " + datosParcheServidor.version_parche;
+            }
+        }
+    }
+
+    const listaModelos = {
+        zte: [
+            { text: "ZTE Axon 70 Ultra", value: "ax70u", hz: 144, touch: 360, panel: "AMOLED 1.5K", dpi: "600 DPI" },
+            { text: "ZTE Axon 70 (Estándar)", value: "ax70", hz: 120, touch: 240, panel: "IPS LCD HD+", dpi: "520 DPI" },
+            { text: "RedMagic 11 Pro / 11S Pro", value: "rm11", hz: 165, touch: 960, panel: "AMOLED Gaming", dpi: "720 DPI" },
+            { text: "RedMagic 10 Pro / 10S Pro", value: "rm10", hz: 165, touch: 960, panel: "AMOLED Gaming", dpi: "720 DPI" }
+        ],
+        samsung: [
+            { text: "Galaxy S26 Ultra / S25 Ultra", value: "s26u", hz: 120, touch: 240, panel: "Dynamic AMOLED 2X", dpi: "680 DPI" },
+            { text: "Galaxy A55 5G / A54 5G", value: "a55", hz: 120, touch: 240, panel: "Super AMOLED", dpi: "520 DPI" },
+            { text: "Galaxy A15 / A14 / A05", value: "a15", hz: 90, touch: 180, panel: "PLCS / AMOLED", dpi: "480 DPI" }
+        ],
+        xiaomi: [
+            { text: "Xiaomi 15 Ultra / 15 Pro", value: "x15u", hz: 144, touch: 480, panel: "AMOLED LTPO", dpi: "680 DPI" },
+            { text: "Poco F7 Pro / Poco X6 Pro", value: "pf7p", hz: 120, touch: 480, panel: "Flow AMOLED", dpi: "640 DPI" },
+            { text: "Redmi Note 13 Pro / 12 Pro", value: "rn13p", hz: 120, touch: 240, panel: "AMOLED", dpi: "540 DPI" }
+        ],
+        apple: [
+            { text: "iPhone 18 Pro Max / 16 Pro Max", value: "ip18pm", hz: 120, touch: 1000, panel: "OLED Super Retina", dpi: "iOS Nativo (1.2x)" },
+            { text: "iPhone 15 / 14 / 13 Standard", value: "ip15", hz: 60, touch: 240, panel: "OLED", dpi: "iOS Nativo (1.0x)" }
+        ],
+        motorola: [
+            { text: "Moto Edge 50 Ultra / Edge 40", value: "m50u", hz: 144, touch: 360, panel: "pOLED", dpi: "580 DPI" },
+            { text: "Moto G84 5G / G54", value: "mg84", hz: 120, touch: 240, panel: "IPS LCD", dpi: "500 DPI" }
+        ],
+        infinix: [
+            { text: "Infinix GT 20 Pro Gaming", value: "igt20", hz: 144, touch: 360, panel: "AMOLED", dpi: "600 DPI" },
+            { text: "Infinix Note 40 Pro", value: "in40", hz: 120, touch: 240, panel: "AMOLED", dpi: "520 DPI" }
+        ]
+    };
+
+    function actualizarMarcaSeleccionada() { if (esSuscritoVIP) cargarModelos(); }
+
+    function cargarModelos() {
+        const marcaSel = document.getElementById('marcaSelect');
+        const modeloSel = document.getElementById('modeloVip');
+        if (!marcaSel || !modeloSel) return;
+        
+        modeloSel.innerHTML = "";
+        const lista = listaModelos[marcaSel.value] || [{ text: "Modelo Genérico", value: "gen", hz: 120, touch: 240, panel: "AMOLED", dpi: "520 DPI" }];
+        
+        lista.forEach(item => {
+            const opt = document.createElement('option');
+            opt.value = item.value;
+            opt.textContent = item.text;
+            modeloSel.appendChild(opt);
+        });
+        mostrarEspecificaciones();
+    }
+
+    function mostrarEspecificaciones() {
+        const marcaSel = document.getElementById('marcaSelect');
+        const modeloSel = document.getElementById('modeloVip');
+        const boxSpecs = document.getElementById('boxSpecs');
+        if (!marcaSel || !modeloSel || !boxSpecs) return;
+
+        const lista = listaModelos[marcaSel.value] || [];
+        const item = lista.find(m => m.value === modeloSel.value) || lista[0];
+
+        if (item) {
+            document.getElementById('specHz').innerText = item.hz + " Hz";
+            document.getElementById('specTouch').innerText = item.touch + " Hz";
+            document.getElementById('specPanel').innerText = item.panel;
+            document.getElementById('specDpiNat').innerText = item.dpi;
+            boxSpecs.style.display = 'block';
+        }
+    }
+
+    function aplicarVIP() {
+        esSuscritoVIP = true;
+        const app = document.getElementById('appContainer');
+        if (app) app.classList.add('vip-activo');
+
+        document.getElementById('subtituloApp').innerText = 'Motor VIP Avanzado (Cálculo por Hardware Real Escala 0-200)';
+        
+        const lbl = document.getElementById('lblBanner');
+        const box = document.getElementById('boxFormVIP');
+        if (lbl) lbl.innerText = "👑 LICENCIA VIP PREMIUM ACTIVADA";
+        if (box) box.style.display = "none";
+
+        cargarModelos();
+        sincronizarParcheServidor();
+    }
+
+    function activarVIP() {
+        const input = document.getElementById('inputCodigo');
+        const txt = input ? input.value.replace(/\s+/g, '').toUpperCase() : "";
+
+        if (!txt) {
+            alert("Por favor ingresa un código VIP.");
+            return;
+        }
+
+        // 1. Clave Administrador Local
+        if (txt === CLAVE_ADMIN) {
+            try { localStorage.setItem('sensi_vip_license_2026', CLAVE_ADMIN); } catch(e){}
+            aplicarVIP();
+            return;
+        }
+
+        // 2. Validación Remota vía JSONP con Google Apps Script
+        const callbackName = "jsonp_cb_" + Math.round(100000 * Math.random());
+
+        window[callbackName] = function(data) {
+            delete window[callbackName];
+            const scriptNode = document.getElementById(callbackName);
+            if (scriptNode) scriptNode.remove();
+
+            if (data.status === "success") {
+                try { localStorage.setItem('sensi_vip_license_2026', txt); } catch(e){}
+                aplicarVIP();
+                alert("¡CÓDIGO VÁLIDO! Modo VIP Activado con éxito.");
+            } else if (data.status === "used") {
+                alert("❌ Este código VIP ya fue utilizado.");
+            } else {
+                alert("❌ El código VIP ingresado no existe o no es válido.");
+            }
+        };
+
+        const script = document.createElement("script");
+        script.id = callbackName;
+        script.src = `${APPS_SCRIPT_URL}?action=redeem&code=${encodeURIComponent(txt)}&callback=${callbackName}`;
+        
+        script.onerror = function() {
+            delete window[callbackName];
+            document.getElementById(callbackName)?.remove();
+            alert("⚠️ Error de conexión con el servidor. Verifica tu acceso a internet.");
+        };
+
+        document.body.appendChild(script);
+    }
+
+    window.onload = function() {
+        try {
+            const guardado = localStorage.getItem('sensi_vip_license_2026');
+            if (guardado) {
+                aplicarVIP();
+            }
+        } catch(e){}
+    };
+
+    function procesarCalculo() {
+        if (esSuscritoVIP) {
+            const marcaSel = document.getElementById('marcaSelect').value;
+            const modeloSel = document.getElementById('modeloVip').value;
+            const sentimiento = document.getElementById('sentimientoParche').value;
+
+            const lista = listaModelos[marcaSel] || [];
+            const spec = lista.find(m => m.value === modeloSel) || { hz: 120, touch: 240, dpi: "520 DPI" };
+
+            let baseGen = 185;
+            let baseRed = 188;
+
+            let deltaHz = Math.round((spec.hz - 60) / 10);
+            let deltaTouch = Math.round((spec.touch - 120) / 40);
+
+            let general = baseGen - deltaHz - deltaTouch;
+            let redDot = baseRed - deltaHz - (deltaTouch / 2);
+
+            general *= (datosParcheServidor.factorGeneral || 1.0);
+            redDot *= (datosParcheServidor.factorRedDot || 1.0);
+
+            let boton = 43;
+            if (sentimiento === "pesado") {
+                general *= 1.06;
+                redDot *= 1.08;
+                boton -= 3;
+            } else if (sentimiento === "volado") {
+                general *= 0.94;
+                redDot *= 0.93;
+                boton += 2;
+            }
+
+            let scope2x = (general - 12) * (datosParcheServidor.factorScopes || 1.0);
+            let scope4x = (general - 26) * (datosParcheServidor.factorScopes || 1.0);
+
+            document.getElementById('resGeneral').innerText = Math.min(200, Math.max(100, Math.round(general)));
+            document.getElementById('resRedDot').innerText = Math.min(200, Math.max(100, Math.round(redDot)));
+            document.getElementById('resScopes').innerText = `${Math.round(scope2x)} / ${Math.round(scope4x)}`;
+            document.getElementById('resAwm').innerText = "105";
+            document.getElementById('resCam360').innerText = "140";
+            document.getElementById('resBoton').innerText = `${boton}%`;
+            document.getElementById('resDpi').innerText = spec.dpi;
+            document.getElementById('resSistema').innerText = (spec.hz >= 120) ? "50% (Media) / Supresor 0.4s" : "100% (Máxima) / Supresor 0.2s";
+            document.getElementById('resTermico').innerText = (spec.hz >= 144) ? "+2% General tras 20m" : "+6% FPS Drop Fix";
+            document.getElementById('txtMetaVer').innerText = `${datosParcheServidor.version_parche} (${spec.hz}Hz)`;
+        } else {
+            const gama = document.getElementById('gamaBasica').value;
+            let gen = 175, red = 180, btn = "45%";
+            if (gama === "alta") { gen = 162; red = 168; btn = "42%"; }
+            else if (gama === "baja") { gen = 188; red = 192; btn = "48%"; }
+
+            document.getElementById('resGeneral').innerText = gen;
+            document.getElementById('resRedDot').innerText = red;
+            document.getElementById('resScopes').innerText = `${gen - 10} / ${gen - 25}`;
+            document.getElementById('resBoton').innerText = btn;
+            document.getElementById('resAwm').innerText = "100";
+            document.getElementById('resCam360').innerText = "135";
+            document.getElementById('txtMetaVer').innerText = "Estándar (Escala 0-200)";
+        }
+        document.getElementById('resultadosBox').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>
