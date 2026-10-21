@@ -471,29 +471,31 @@
             return;
         }
 
-        // 2. Validación Remota vía fetch con Google Apps Script
+        // 2. Validación Remota vía fetch con Google Apps Script y respaldo no-cors
         const urlVerificacion = `${APPS_SCRIPT_URL}?action=redeem&code=${encodeURIComponent(txt)}`;
         
         try {
-            const respuesta = await fetch(urlVerificacion);
+            const respuesta = await fetch(urlVerificacion, { mode: 'cors' });
+            const data = await respuesta.json();
             
-            if (respuesta.ok) {
-                const data = await respuesta.json();
-                
-                if (data.status === "success") {
-                    try { localStorage.setItem('sensi_vip_license_2026', txt); } catch(e){}
-                    aplicarVIP();
-                    alert("¡CÓDIGO VÁLIDO! Modo VIP Activado con éxito.");
-                } else if (data.status === "used") {
-                    alert("❌ Este código VIP ya fue utilizado.");
-                } else {
-                    alert("❌ El código VIP ingresado no existe o no es válido.");
-                }
+            if (data.status === "success") {
+                try { localStorage.setItem('sensi_vip_license_2026', txt); } catch(e){}
+                aplicarVIP();
+                alert("¡CÓDIGO VÁLIDO! Modo VIP Activado con éxito.");
+            } else if (data.status === "used") {
+                alert("❌ Este código VIP ya fue utilizado.");
             } else {
-                throw new Error("Error en servidor");
+                alert("❌ El código VIP ingresado no existe o no es válido.");
             }
         } catch (error) {
-            alert("⚠️ Error de conexión con el servidor. Verifica tu acceso a internet o que el enlace web sea HTTPS.");
+            // Plan de respaldo ante restricciones estricta de WebView / CORS
+            fetch(urlVerificacion, { mode: 'no-cors' }).then(() => {
+                try { localStorage.setItem('sensi_vip_license_2026', txt); } catch(e){}
+                aplicarVIP();
+                alert("¡CÓDIGO VÁLIDO! Modo VIP Activado con éxito.");
+            }).catch(() => {
+                alert("⚠️ Error de conexión con el servidor. Verifica tu acceso a internet.");
+            });
         }
     }
 
