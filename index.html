@@ -455,7 +455,7 @@
         sincronizarParcheServidor();
     }
 
-    function activarVIP() {
+    async function activarVIP() {
         const input = document.getElementById('inputCodigo');
         const txt = input ? input.value.replace(/\s+/g, '').toUpperCase() : "";
 
@@ -471,36 +471,30 @@
             return;
         }
 
-        // 2. Validación Remota vía JSONP con Google Apps Script
-        const callbackName = "jsonp_cb_" + Math.round(100000 * Math.random());
-
-        window[callbackName] = function(data) {
-            delete window[callbackName];
-            const scriptNode = document.getElementById(callbackName);
-            if (scriptNode) scriptNode.remove();
-
-            if (data.status === "success") {
-                try { localStorage.setItem('sensi_vip_license_2026', txt); } catch(e){}
-                aplicarVIP();
-                alert("¡CÓDIGO VÁLIDO! Modo VIP Activado con éxito.");
-            } else if (data.status === "used") {
-                alert("❌ Este código VIP ya fue utilizado.");
-            } else {
-                alert("❌ El código VIP ingresado no existe o no es válido.");
-            }
-        };
-
-        const script = document.createElement("script");
-        script.id = callbackName;
-        script.src = `${APPS_SCRIPT_URL}?action=redeem&code=${encodeURIComponent(txt)}&callback=${callbackName}`;
+        // 2. Validación Remota vía fetch con Google Apps Script
+        const urlVerificacion = `${APPS_SCRIPT_URL}?action=redeem&code=${encodeURIComponent(txt)}`;
         
-        script.onerror = function() {
-            delete window[callbackName];
-            document.getElementById(callbackName)?.remove();
-            alert("⚠️ Error de conexión con el servidor. Verifica tu acceso a internet.");
-        };
-
-        document.body.appendChild(script);
+        try {
+            const respuesta = await fetch(urlVerificacion);
+            
+            if (respuesta.ok) {
+                const data = await respuesta.json();
+                
+                if (data.status === "success") {
+                    try { localStorage.setItem('sensi_vip_license_2026', txt); } catch(e){}
+                    aplicarVIP();
+                    alert("¡CÓDIGO VÁLIDO! Modo VIP Activado con éxito.");
+                } else if (data.status === "used") {
+                    alert("❌ Este código VIP ya fue utilizado.");
+                } else {
+                    alert("❌ El código VIP ingresado no existe o no es válido.");
+                }
+            } else {
+                throw new Error("Error en servidor");
+            }
+        } catch (error) {
+            alert("⚠️ Error de conexión con el servidor. Verifica tu acceso a internet o que el enlace web sea HTTPS.");
+        }
     }
 
     window.onload = function() {
