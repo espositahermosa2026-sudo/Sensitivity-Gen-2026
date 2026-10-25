@@ -325,7 +325,8 @@
 
 <script>
     const CLAVE_ADMIN = "DANIELYTJ_A";
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw866X_07BIoV9HoSMKbqdqw-kYoiCT21VYSYvJnXckxbzYiWCLXc4YB-vWjpZuaq_8DQ/exec";
+    // URL ACTUALIZADA Y LISTA
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwwxQt1huoqSVQmMV1UFCOlixCGoh50bPbWf_6E499CsiGZNRrGBKnSvU7yZ2xUQMUg4Q/exec";
     const URL_PARCHE_REMOTA = "https://raw.githubusercontent.com/espositahermosa2026-sudo/optimax-data/main/parche_meta.json";
 
     let esSuscritoVIP = false;
@@ -472,7 +473,7 @@
         }
 
         // 2. Validación Remota vía fetch con Google Apps Script y respaldo no-cors
-        const urlVerificacion = `${APPS_SCRIPT_URL}?action=redeem&code=${encodeURIComponent(txt)}`;
+        const urlVerificacion = `${APPS_SCRIPT_URL}?code=${encodeURIComponent(txt)}`;
         
         try {
             const respuesta = await fetch(urlVerificacion, { mode: 'cors' });
